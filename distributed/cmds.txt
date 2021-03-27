@@ -1,0 +1,8 @@
+./mvnw clean spring-boot:run
+
+
+
+mvn package -Dmaven.test.skip=true
+mvnw clean spring-boot:run -Dmaven.test.skip.true
+
+mvnw clean spring-boot:run
