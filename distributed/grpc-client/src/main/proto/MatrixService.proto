@@ -15,9 +15,7 @@ message MatrixResponse {
   repeated Row i = 1;
 }
 
-message Success {
-  bool result = 1;
-}
+message Success {}
 
 message getAccRequest{}
 
