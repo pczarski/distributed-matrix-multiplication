@@ -10,17 +10,6 @@ public class Main {
 
     public static final int MAX_BLOCKS = 8;
 
-    public static String twoDArrToString(Object[][] A){
-        StringBuilder buffer = new StringBuilder();
-        for(int i = 0; i < A.length; i++){
-            for(int j = 0; j<A[i].length; j ++){
-                buffer.append(A[i][j]+" ");
-            }
-            buffer.append("\n");
-        }
-        return buffer.substring(0, buffer.length()-2);
-    }
-
     public static Double dotProduct(Double[][] A, Double[][] B, int ai, int bi) {
         assert A.length == B.length;
         double c = 0;
@@ -50,15 +39,6 @@ public class Main {
         return C;
     }
 
-    public static Object[][] divideMatrix(Object[][] matrix, int start_row, int start_column, int size){
-        Object[][] out = new Object[size][size];
-        for(int i = 0; i < out.length; i++){
-            for(int j = 0; j<out[i].length; j++){
-                out[i][j] = matrix[i+start_row][j+start_column];
-            }
-        }
-        return out;
-    }
 
     public static void mapToLargerMatrix(Object[][] target, Object[][] from, int start_row, int start_column){
         assert target.length >= from.length;
@@ -69,26 +49,55 @@ public class Main {
         }
     }
 
-    public static Double[][] blockMultiplication(Double[][] A, Double[][] B, int blocks){
-        // blocks can be: 1, 2, 4, 8
-        assert A.length == B.length;
-        int size = A.length;
-        if(size/2 <= blocks) {
-            // we cannot divide more into more than size/2 blocks
-            blocks = size/2;
-        }
-        int blockSize = size / blocks;
-        Double[][] result = new Double[size][size];
-        for(int i = 0; i<size; i+=blockSize){
-           // mapToLargerMatrix();
-        }
 
+    public static Double[][] blockDotProduct(int rows, int ai, int bi, BlockMatrix A, BlockMatrix B){
+        Double[][] temp;
+        Double[][] res = MatrixHelpers.ZeroMatrix(A.getBlockSize());
+        for(int i = 0; i < rows; i++){
+            temp = multiplyBlock(A.getBlock(ai, i), B.getBlock(i, bi));
+            res = addBlock(res, temp);
+        }
+        return res;
+    }
 
-        return null;
+    public static Double[][] blockMatrixMultiplication(Double[][] A, Double[][] B, int blocks){
+        Double[][] C = new Double[A.length][A.length];
+        BlockMatrix Ab = new BlockMatrix(A, blocks);
+        BlockMatrix Bb = new BlockMatrix(B, blocks);
+        int rows = (int) Math.sqrt(blocks);
+        for(int i = 0; i<rows; i++){
+            for(int j = 0; j < rows; j++){
+                mapToLargerMatrix(C, blockDotProduct(rows, i, j, Ab, Bb), i*Ab.getBlockSize(), j*Bb.getBlockSize());
+            }
+        }
+        return C;
     }
 
 
     public static void main(String[] args) {
+
+        Double X[][] = {
+                {1., 2., 3., 4.,1., 2., 3., 4.},
+                {5., 6., 7., 8.,1., 1., 3., 8.},
+                {9., 2., 3., 4.,1., 2., 3., 9.},
+                {1., 6., 3., 8.,0., 3., 3., 4.},
+                {1., 2., 3., 4.,2., 2., 3., 2.},
+                {5., 6., 4., 8.,1., 5., 3., 3.},
+                {1., 2., 3., 4.,1., 2., 3., 5.},
+                {5., 6., 7., 8.,1., 9., 3., 8.},
+        };
+
+        Double Y[][] = {
+                {1., 2., 3., 4.,1., 2., 3., 4.},
+                {5., 6., 7., 8.,1., 1., 3., 8.},
+                {9., 2., 3., 4.,1., 2., 3., 9.},
+                {1., 6., 3., 8.,0., 3., 3., 4.},
+                {1., 2., 3., 4.,2., 2., 3., 2.},
+                {5., 6., 4., 8.,1., 5., 3., 3.},
+                {1., 2., 3., 4.,1., 2., 3., 5.},
+                {5., 6., 7., 8.,1., 9., 3., 8.},
+        };
+
         Double A[][] = {
                 {1., 2., 3., 4.},
                 {5., 6., 7., 8.},
@@ -103,11 +112,22 @@ public class Main {
                 {13., 14., 15., 16.}
         };
 
-        Double C[][] = new Double[8][8];
-        mapToLargerMatrix(C, A, 4,4);
-        System.out.println(twoDArrToString(C));
+//        BlockMatrix C = new BlockMatrix(X, 4);
+//        for(int i = 0; i < C.getBlockRows(); i++){
+//            for(int j = 0; j < C.getBlockRows(); j++){
+//                System.out.println(MatrixHelpers.twoDArrToString(C.getBlock(i, j)));
+//                System.out.println("");
+//            }
+//        }
+        System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(X, Y)));
+        System.out.println("");
 
-        ArrayList<ArrayList<Double>> test = new ArrayList<>();
+        System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(X, Y, 16)));
+
+
+//        mapToLargerMatrix(C, A, 4,4);
+//        System.out.println(twoDArrToString(C));
+
 
     }
 }
