@@ -8,7 +8,9 @@ import java.util.Arrays;
 
 public class Main {
 
-    public static final int MAX_BLOCKS = 8;
+    public static final int MAX_BLOCKS = 16;
+    private static int add=0;
+    private static int mult = 0;
 
     public static Double dotProduct(Double[][] A, Double[][] B, int ai, int bi) {
         assert A.length == B.length;
@@ -20,6 +22,7 @@ public class Main {
     }
 
     public static Double[][] multiplyBlock(Double[][] A, Double[][] B) {
+        mult++;
         Double[][] C = new Double[A.length][B.length];
         for(int i = 0; i < C.length; i++){
             for(int j = 0; j <C.length; j++){
@@ -30,6 +33,7 @@ public class Main {
     }
 
     public static Double[][] addBlock(Double[][] A, Double[][] B){
+        add++;
         Double[][] C = new Double[A.length][B.length];
         for(int i = 0; i < C.length; i++){
             for(int j = 0; j < C.length; j++){
@@ -123,7 +127,8 @@ public class Main {
         System.out.println("");
 
         System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(X, Y, 16)));
-
+        System.out.println(add);
+        System.out.println(mult);
 
 //        mapToLargerMatrix(C, A, 4,4);
 //        System.out.println(twoDArrToString(C));

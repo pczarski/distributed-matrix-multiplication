@@ -13,15 +13,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 
 @RestController
-public class PingPongEndpoint {    
+public class MatrixEndpoint {
 
 	GRPCClientService grpcClientService;    
 	@Autowired
-    	public PingPongEndpoint(GRPCClientService grpcClientService) {
+    	public MatrixEndpoint(GRPCClientService grpcClientService) {
         	this.grpcClientService = grpcClientService;
     	}    
-	@GetMapping("/ping")
-    	public String ping() {
-        	return grpcClientService.ping();
-    	}
+//	@GetMapping("/ping")
+//    	public String ping() {
+//        	return grpcClientService.ping();
+//    	}
+
+	@GetMapping("/mult")
+	public String mult() {
+		grpcClientService.muliplyBlock();
+		return "mult";
+	}
 }

@@ -1,0 +1,29 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.example.grpc.server.grpcserver;
+
+message MatrixRequest {
+  repeated Row i1 = 1;
+  repeated Row i2 = 2;
+}
+
+message Row {
+  repeated double j = 3;
+}
+
+message MatrixResponse {
+  repeated Row i = 1;
+}
+
+message Success {
+  bool result = 1;
+}
+
+message getAccRequest{}
+
+service MatrixService {
+  rpc multiplyBlock(MatrixRequest) returns (MatrixResponse);
+  rpc addBlock(MatrixRequest) returns (MatrixResponse);
+  rpc multiplyAndAdd(MatrixRequest) returns (Success);
+  rpc getAccumulated(getAccRequest) returns (MatrixResponse);
+}
