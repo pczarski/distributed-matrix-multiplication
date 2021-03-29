@@ -123,7 +123,7 @@ public class Main {
 //                System.out.println("");
 //            }
 //        }
-        System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(X, Y)));
+        System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(A, B)));
         System.out.println("");
 
         System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(X, Y, 16)));

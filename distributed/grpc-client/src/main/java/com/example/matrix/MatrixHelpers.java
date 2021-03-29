@@ -63,4 +63,13 @@ public class MatrixHelpers {
     public Double[][] getMatrix(){
         return this.matrix;
     }
+
+    public static void mapToLargerMatrix(Object[][] target, Object[][] from, int start_row, int start_column){
+        assert target.length >= from.length;
+        for(int i = 0; i<from.length; i++){
+            for(int j = 0; j<from[i].length; j++){
+                target[start_row+i][start_column+j] = from[i][j];
+            }
+        }
+    }
 }

@@ -77,35 +77,50 @@ public class GRPCClientService {
         System.out.println(MatrixHelpers.twoDArrToString(C));
     }
 
-    public Double[][] multiplyBlock(Double[][] A, Double[][] B, MatrixServiceGrpc.MatrixServiceBlockingStub stub){
+    private Double[][] multiplyBlock(Double[][] A, Double[][] B, MatrixServiceGrpc.MatrixServiceBlockingStub stub){
         MatrixResponse response = stub.multiplyBlock(BufferHelpers.buildRequest(A, B));
         return BufferHelpers.parseMatrix(response.getIList());
     }
 
-    public void multiplyMatrix(double deadline){
+    private Double[][] addBlock(Double[][] A, Double[][] B, MatrixServiceGrpc.MatrixServiceBlockingStub stub){
+        MatrixResponse response = stub.addBlock(BufferHelpers.buildRequest(A, B));
+        return BufferHelpers.parseMatrix(response.getIList());
+    }
+
+    private Double[][] footprintResult;
+
+    public void multiplyMatrix(double deadline, long startTime){
+
         // TODO the loaded matrix
         int blocks = getNumberOfBlocks(A.length);
         BlockMatrix Ab = new BlockMatrix(A, blocks);
         BlockMatrix Bb = new BlockMatrix(B, blocks);
+        Double[][] C = new Double[A.length][A.length];
+
         int rows = (int) Math.sqrt(blocks);
         int multiplyCalls = rows * rows * rows;
         int addCalls = (rows-1)*rows*rows;
+
         /*
+        Footprinting:
         AddBlock calls are faster than multiplyBlock calls, but since this is en estimation, and
         since we have to leave some extra time for network delays etc. they will be treated to take
         equal amount of time.
          */
 
+       // StubHandler handler0 = new StubHandler(stubs.get(0), C);
         long t1 = System.currentTimeMillis();
-        Double[][] footPrintMultResult = multiplyBlock(Ab.getBlock(0,0), Bb.getBlock(0,0), stubs.get(0));
+       // handler0.performSingleAction(ActionType.MULTIPLY_BLOCK, Ab.getBlock(0,0), Bb.getBlock(0,0));
+        this.footprintResult = multiplyBlock(Ab.getBlock(0,0), Bb.getBlock(0,0), stubs.get(0));
         long t2 = System.currentTimeMillis();
 
         // deadline is in milliseconds
-        int nServers = (int) Math.ceil((t2-t1)*(multiplyCalls+addCalls) / deadline);
+        int nServers = (int) Math.ceil((t2-t1)*(multiplyCalls+addCalls-1) / (deadline - (t2 - startTime)));
         nServers = Math.min(nServers, 8);
+        multiplyMatrix(1, blocks, rows, Ab, Bb, C);
         System.out.println(t2-t1);
         System.out.println(nServers);
-        System.out.println(MatrixHelpers.twoDArrToString(footPrintMultResult));
+        System.out.println(MatrixHelpers.twoDArrToString(C));
         shutDownChannels();
     }
 
@@ -116,12 +131,40 @@ public class GRPCClientService {
 //        return t2 - t1;
 //
 //    }
+    private void addAndMultiply(
+            MatrixServiceGrpc.MatrixServiceBlockingStub stub, Double[][] C, BlockMatrix Ab, BlockMatrix Bb,
+            int a1i, int a1j, int b1i, int b1j, int a2i, int a2j, int b2i, int b2j, int row, int col
+    ){
+        MatrixHelpers.mapToLargerMatrix(C,
+                addBlock(
+                        multiplyBlock(Ab.getBlock(a1i, a1j), Bb.getBlock(b1i, b1j), stub),
+                        multiplyBlock(Ab.getBlock(a2i, a2j), Bb.getBlock(b2i, b2j), stub), stub),
+                row * Ab.getBlockSize(), col * Ab.getBlockSize()
+        );
+    }
 
-    private void multiplyMatrix(int nServers, int blocks, Double[][] A, Double[][] B){
-        Double[][] C = new Double[A.length][A.length];
-        BlockMatrix Ab = new BlockMatrix(A, blocks);
-        BlockMatrix Bb = new BlockMatrix(B, blocks);
-        int rows = (int) Math.sqrt(blocks);
+    private void multiplyMatrix(int nServers, int blocks, int rows, BlockMatrix Ab, BlockMatrix Bb, Double[][] C){
+        if(blocks == MIN_BLOCKS){
+            switch (nServers){
+                case 1:
+                    // complete after footprint res for 0,0
+                    MatrixHelpers.mapToLargerMatrix(C,
+                            addBlock(footprintResult, multiplyBlock(Ab.getBlock(0, 1), Bb.getBlock(1, 0), stubs.get(0)), stubs.get(0)),
+                            0,0
+                    );
+                    //res for 0, 1
+                    addAndMultiply(stubs.get(0), C, Ab, Bb, 0, 0, 0,1, 0,  1, 1, 1, 0, 1);
+                    //res for 1, 0
+                    addAndMultiply(stubs.get(0), C, Ab, Bb, 1, 0, 0,0, 1,  1, 1, 0, 1, 0);
+                    //res for 1,1
+                    addAndMultiply(stubs.get(0), C, Ab, Bb, 1, 0, 0,1, 1,  1, 1, 1, 1, 1);
+            }
+        }else{
+
+        }
+    }
+
+    private void finishFootPrint(BlockMatrix Ab, BlockMatrix Bb, Double[][] C, MatrixServiceGrpc.MatrixServiceBlockingStub stub){
 
     }
 

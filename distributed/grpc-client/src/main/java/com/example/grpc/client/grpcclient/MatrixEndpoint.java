@@ -34,7 +34,7 @@ public class MatrixEndpoint {
 
 	@GetMapping("/m/{time}")
 	public String m(@PathVariable String time) {
-		grpcClientService.multiplyMatrix(Double.parseDouble(time));
+		grpcClientService.multiplyMatrix(Double.parseDouble(time), System.currentTimeMillis());
 		return "m";
 	}
 }
