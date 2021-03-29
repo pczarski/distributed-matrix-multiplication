@@ -17,6 +17,16 @@ public class MatrixHelpers {
         return out;
     }
 
+    public static Double[][] divideMatrix(Double[][] matrix, int start_row, int start_column, int size){
+        Double[][] out = new Double[size][size];
+        for(int i = 0; i < out.length; i++){
+            for(int j = 0; j<out[i].length; j++){
+                out[i][j] = matrix[i+start_row][j+start_column];
+            }
+        }
+        return out;
+    }
+
     public static String twoDArrToString(Object[][] A){
         StringBuilder buffer = new StringBuilder();
         for(int i = 0; i < A.length; i++){
