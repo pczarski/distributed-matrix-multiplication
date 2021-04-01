@@ -126,7 +126,7 @@ public class Main {
         System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(A, B)));
         System.out.println("");
 
-        System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(X, Y, 16)));
+        System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(A, B, 4)));
         System.out.println(add);
         System.out.println(mult);
 
