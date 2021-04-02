@@ -102,7 +102,7 @@ public class GRPCClientService {
 
         // some extra time needs to be given to account for sequential elements and network latency change
         // would need to be calculated dynamically normally, but this should be good enough for the coursework
-        int offset = 11;
+        int offset = 0;//1132;
 
         long t1 = System.currentTimeMillis();
         StubHelpers.multiplyBlock(Ab.getBlock(0,0), Bb.getBlock(0,0), getStub(0));
