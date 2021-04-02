@@ -23,12 +23,15 @@ public class GRPCClientService {
     private static final int MIN_BLOCKS = 4;
     private static final int MAX_BLOCKS = 16;
 
+
+    // we will always need at least one stub
     private ArrayList<ManagedChannel> channels = new ArrayList(
             Arrays.asList(ManagedChannelBuilder.forAddress("localhost", 9090).usePlaintext().build())
     );
 
-    private ArrayList<MatrixServiceGrpc.MatrixServiceBlockingStub> stubs =
-            new ArrayList<>(Arrays.asList(MatrixServiceGrpc.newBlockingStub(channels.get(0))));
+    private ArrayList<MatrixServiceGrpc.MatrixServiceBlockingStub> stubs = new ArrayList<>(
+            Arrays.asList(MatrixServiceGrpc.newBlockingStub(channels.get(0)))
+    );
 
 
     private final static String[] addressList = {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
@@ -43,7 +46,7 @@ public class GRPCClientService {
         B = b;
     }
 
-    public Double[][] multiplyMatrix(double deadline) throws InterruptedException, ExecutionException, IncompatibleMatrixException{
+    public Double[][] multiplyMatrix(double deadline, long startTime) throws InterruptedException, ExecutionException, IncompatibleMatrixException{
 
         if(A.length != B.length){
             throw new IncompatibleMatrixException("A and B must be the same size");
@@ -59,7 +62,10 @@ public class GRPCClientService {
 
         int rows = (int) Math.sqrt(blocks);
         int multiplyCalls = rows * rows * rows;
-        int offset = 23; // to account for addBlocks and returning the result
+
+        // some extra time needs to be given to account for sequential elements and network latency change
+        int offset = 11;
+
 
         /*
         Footprinting:
@@ -73,11 +79,10 @@ public class GRPCClientService {
         long t2 = System.currentTimeMillis();
 
         // deadline is in milliseconds
-        int nServers = (int) Math.ceil(((t2-t1)*(multiplyCalls)+offset) / (deadline));
+        int nServers = (int) Math.ceil(((t2-t1)*(multiplyCalls)+offset) / Math.max(deadline - (t2-startTime), 1)); //take time passed into consideration
         nServers = Math.min(nServers, 8);
         multiplyMatrix(nServers, blocks, rows, Ab, Bb, C);
-        System.out.println(t2-t1);
-        System.out.println(nServers);
+        System.out.println("\nNumber of servers used: "+nServers);
         return C;
     }
 

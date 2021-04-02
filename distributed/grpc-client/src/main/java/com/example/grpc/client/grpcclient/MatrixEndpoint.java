@@ -25,7 +25,10 @@ public class MatrixEndpoint {
 	public String multiply(@RequestParam String time) {
 		Double[][] C;
 		try {
-			C = grpcClientService.multiplyMatrix(Double.parseDouble(time));
+			long t1 = System.currentTimeMillis();
+			C = grpcClientService.multiplyMatrix(Double.parseDouble(time), t1);
+			long t2 = System.currentTimeMillis();
+			System.out.println("Deadline: " + time + "\nTime taken: "+(t2-t1));
 		} catch (InterruptedException e){
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Client service interrupted");
 		} catch (ExecutionException e) {

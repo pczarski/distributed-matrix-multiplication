@@ -7,8 +7,6 @@ import net.devh.boot.grpc.server.service.GrpcService;
 @GrpcService
 public class MatrixServiceImpl extends MatrixServiceGrpc.MatrixServiceImplBase{
 
-    private MatrixMultiplier matrixMultiplier = null;
-
     private void done(){
         System.out.println("done");
     }
@@ -32,29 +30,6 @@ public class MatrixServiceImpl extends MatrixServiceGrpc.MatrixServiceImplBase{
                 BufferHelpers.parseMatrix(request.getI2List())
         );
         responseObserver.onNext(BufferHelpers.buildResponse(result));
-        responseObserver.onCompleted();
-        done();
-    }
-
-    @Override
-    public void multiplyAndAdd(MatrixRequest request, StreamObserver<Success> responseObserver) {
-        System.out.println("multiply and add...");
-        Double[][] A = BufferHelpers.parseMatrix(request.getI1List());
-        Double[][] B = BufferHelpers.parseMatrix(request.getI2List());
-        if(matrixMultiplier == null){
-            matrixMultiplier = new MatrixMultiplier(A.length);
-        }
-        matrixMultiplier.multiplyAndAdd(A, B);
-        responseObserver.onNext(Success.newBuilder().build());
-        responseObserver.onCompleted();
-        done();
-    }
-
-    @Override
-    public void getAccumulated(getAccRequest request, StreamObserver<MatrixResponse> responseObserver) {
-        System.out.println("getting result...");
-        responseObserver.onNext(BufferHelpers.buildResponse(matrixMultiplier.getAccMatrix()));
-        matrixMultiplier = null; // reset the accumulator so that the server can be reused
         responseObserver.onCompleted();
         done();
     }

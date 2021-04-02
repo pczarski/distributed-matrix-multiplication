@@ -2,16 +2,6 @@ package com.example.matrix;
 
 public class MatrixMultiplier {
 
-    private Double[][] accMatrix;
-
-    public Double[][] getAccMatrix() {
-        return accMatrix;
-    }
-
-    public MatrixMultiplier(int block_size){
-        accMatrix = MatrixHelpers.ZeroMatrix(block_size);
-    }
-
     public static Double dotProduct(Double[][] A, Double[][] B, int ai, int bi) {
         assert A.length == B.length;
         double c = 0;
@@ -40,9 +30,4 @@ public class MatrixMultiplier {
         }
         return C;
     }
-
-    public void multiplyAndAdd(Double[][] A, Double[][] B){
-        accMatrix = addBlock(accMatrix, multiplyBlock(A, B));
-    }
-
 }

@@ -13,20 +13,6 @@ public class BufferHelpers {
         }
         return matrixHelper.getMatrix();
     }
-    public static MatrixRequest buildRequest(Double[][] A, Double[][] B){
-        MatrixRequest.Builder builder = MatrixRequest.newBuilder();
-        for(Double[] row: A){
-            builder.addI1(Row.newBuilder().addAllJ(
-                    Arrays.asList(row)
-            ));
-        }
-        for(Double[] row: B){
-            builder.addI2(Row.newBuilder().addAllJ(
-                    Arrays.asList(row)
-            ));
-        }
-        return builder.build();
-    }
 
     public static MatrixResponse buildResponse(Double[][] C){
         MatrixResponse.Builder builder = MatrixResponse.newBuilder();

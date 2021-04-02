@@ -17,19 +17,6 @@ public class MatrixHelpers {
         return out;
     }
 
-    public static Double[][] convertToMatrix(List<List<Double>> list){
-        //assumes square matrix
-        if(list.size() == 0){
-            return new Double[0][0];
-        }
-        Double[][] temp = new Double[list.size()][list.get(0).size()];
-        int i = 0;
-        for(List<Double> ls: list){
-            temp[i++] = ls.toArray(Double[]::new);
-        }
-        return temp;
-    }
-
     public MatrixHelpers(int size){
         this.matrix = new Double[size][size];
         this.currRow = 0;
