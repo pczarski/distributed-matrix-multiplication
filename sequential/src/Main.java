@@ -116,6 +116,16 @@ public class Main {
                 {13., 14., 15., 16.}
         };
 
+        Double E[][] = {
+                {1., 1.},
+                {4., 1.}
+        };
+
+        Double F[][] = {
+                {1., 2.},
+                {1., 2.}
+        };
+
 //        BlockMatrix C = new BlockMatrix(X, 4);
 //        for(int i = 0; i < C.getBlockRows(); i++){
 //            for(int j = 0; j < C.getBlockRows(); j++){
@@ -126,9 +136,8 @@ public class Main {
         System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(A, B)));
         System.out.println("");
 
-        System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(A, B, 4)));
-        System.out.println(add);
-        System.out.println(mult);
+        System.out.println(MatrixHelpers.twoDArrToString(blockMatrixMultiplication(E, F, 4)));
+        System.out.println(MatrixHelpers.twoDArrToString(multiplyBlock(E, F)));
 
 //        mapToLargerMatrix(C, A, 4,4);
 //        System.out.println(twoDArrToString(C));

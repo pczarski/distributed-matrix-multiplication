@@ -1,17 +1,14 @@
 package com.example.grpc.client.grpcclient;
 
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.grpc.client.grpcclient.exceptions.BadMatrixException;
+import com.example.grpc.client.grpcclient.exceptions.IncompatibleMatrixException;
+import com.example.grpc.client.grpcclient.exceptions.MatrixTooSmallException;
+import com.example.matrix.MatrixHelpers;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -24,27 +21,50 @@ public class MatrixEndpoint {
 		this.grpcClientService = grpcClientService;
 	}
 
-	@GetMapping("/mult")
-	public String mult() {
-		grpcClientService.muliplyBlock();
-		return "mult";
+	@GetMapping("/multiply")
+	public String multiply(@RequestParam String time) {
+		Double[][] C;
+		try {
+			C = grpcClientService.multiplyMatrix(Double.parseDouble(time));
+		} catch (InterruptedException e){
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Client service interrupted");
+		} catch (ExecutionException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (IncompatibleMatrixException e) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+		}
+		return MatrixHelpers.matrixToString(C);
 	}
 
-	@GetMapping("/m/{time}")
-	public String m(@PathVariable String time) {
+	@PutMapping("/matrix/{matrixName}")
+	public void uploadMatrix(@PathVariable String matrixName, @RequestBody String matrix){
+		Double[][] parsedMatrix;
 		try {
-			grpcClientService.multiplyMatrix(Double.parseDouble(time), System.currentTimeMillis());
-		} catch (InterruptedException e){
-			return "Multiplication interrupted";
-		} catch (ExecutionException e) {
-			return "Something went wrong"; // TODO return internal server error
+			parsedMatrix = MatrixHelpers.parseMatrixFromString(matrix);
+			if(!MatrixHelpers.isPowerOf2(parsedMatrix)){
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Matrix size must be a power of two");
+			}
+			// matrix must either A or B
+			if(matrixName.equalsIgnoreCase("a")){
+				grpcClientService.setA(parsedMatrix);
+			} else if(matrixName.equalsIgnoreCase("b")){
+				grpcClientService.setB(parsedMatrix);
+			} else {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Matrix name must be either A or B");
+			}
+
+		} catch (IllegalArgumentException e){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Every value must be a number");
+		} catch (IndexOutOfBoundsException e){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Matrix must be square");
+		} catch (MatrixTooSmallException | IncompatibleMatrixException | BadMatrixException e){
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
-		return "m";
 	}
 
 	@GetMapping("/exit")
 	public String exit() {
 		grpcClientService.shutDownChannels();
-		return "m";
+		return "exit";
 	}
 }

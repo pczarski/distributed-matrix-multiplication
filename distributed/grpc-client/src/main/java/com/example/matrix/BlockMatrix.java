@@ -40,6 +40,6 @@ public class BlockMatrix {
 
     @Override
     public String toString() {
-        return MatrixHelpers.twoDArrToString(matrix);
+        return MatrixHelpers.matrixToString(matrix);
     }
 }
