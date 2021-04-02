@@ -109,8 +109,9 @@ public class GRPCClientService {
         long t2 = System.currentTimeMillis();
 
         // deadline is in milliseconds
-        int nServers = (int) Math.ceil(((t2-t1)*(multiplyCalls)+offset) / Math.max(deadline - (t2-startTime), 1)); //take time passed into consideration
+        int nServers = (int) Math.ceil(((t2-t1)*(multiplyCalls)+offset) / Math.max((deadline - (t2-startTime)), 1)); //take time passed into consideration
         nServers = Math.min(nServers, 8);
+        nServers = (nServers == 0)? 1 : nServers;
         multiplyMatrix(nServers, blocks, rows, Ab, Bb, C);
         System.out.println("\nNumber of servers used: "+nServers);
         return C;
