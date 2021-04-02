@@ -27,7 +27,7 @@ public class GRPCClientService {
 
     // we will always need at least one stub
     private ArrayList<ManagedChannel> channels = new ArrayList(
-            Arrays.asList(ManagedChannelBuilder.forAddress("localhost", 9090).usePlaintext().build())
+            Arrays.asList(ManagedChannelBuilder.forAddress("54.242.181.182", 9090).usePlaintext().build())
     );
 
     private ArrayList<MatrixServiceGrpc.MatrixServiceBlockingStub> stubs = new ArrayList<>(
@@ -35,8 +35,18 @@ public class GRPCClientService {
     );
 
 
-    private final static String[] ADDRESS_LIST = {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
-    private final static int[] PORT_LIST = {9090, 50051, 50052, 50053, 50054, 50055, 50057, 50056};
+    // list for local testing:
+    /*
+    {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"}
+    {9090, 50051, 50052, 50053, 50054, 50055, 50057, 50056}
+     */
+    //list for aws
+    /*
+    {"18.208.177.81", "54.174.112.40", "3.82.104.179", "34.201.60.223", "34.201.54.107", "54.152.37.176", "35.170.245.15", "54.242.181.182"}
+    {9090, 9090, 9090, 9090, 9090, 9090, 9090, 9090}
+     */
+    private final static String[] ADDRESS_LIST = {"18.208.177.81", "54.174.112.40", "3.82.104.179", "34.201.60.223", "34.201.54.107", "54.152.37.176", "35.170.245.15", "54.242.181.182"};
+    private final static int[] PORT_LIST = {9090, 9090, 9090, 9090, 9090, 9090, 9090, 9090};
 
     // we only use put request so the matrices are always initialized to something
     private Double[][] A = MatrixHelpers.zeroMatrix(4);

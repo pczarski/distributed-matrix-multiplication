@@ -1,3 +1,7 @@
+/**
+ * Przemyslaw Leonard Czarski - Distributed Matrix Multiplication Client
+ */
+
 package com.example.grpc.server.grpcserver;
 
 import org.springframework.boot.SpringApplication;

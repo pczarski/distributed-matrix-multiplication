@@ -15,3 +15,4 @@ buildNumber.properties
 .mvn
 temp/
 servers/
+distributed/CW2.zip
