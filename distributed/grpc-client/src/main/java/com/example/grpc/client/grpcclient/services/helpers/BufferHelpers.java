@@ -1,9 +1,8 @@
-package com.example.grpc.client.grpcclient;
+package com.example.grpc.client.grpcclient.services.helpers;
 
 import com.example.grpc.server.grpcserver.MatrixRequest;
-import com.example.grpc.server.grpcserver.getAccRequest;
 import com.example.grpc.server.grpcserver.Row;
-import com.example.matrix.MatrixHelpers;
+import com.example.matrix.helpers.MatrixHelpers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +15,7 @@ public class BufferHelpers {
         }
         return matrixHelper.getMatrix();
     }
+
     public static MatrixRequest buildRequest(Double[][] A, Double[][] B){
         MatrixRequest.Builder builder = MatrixRequest.newBuilder();
         for(Double[] row: A){
@@ -29,8 +29,5 @@ public class BufferHelpers {
             ));
         }
         return builder.build();
-    }
-    public static getAccRequest buildGetAccRequest(){
-        return getAccRequest.newBuilder().build();
     }
 }

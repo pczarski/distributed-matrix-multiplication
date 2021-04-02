@@ -1,6 +1,8 @@
-package com.example.grpc.server.grpcserver;
+package com.example.grpc.server.grpcserver.helpers;
 
-import com.example.matrix.MatrixHelpers;
+import com.example.grpc.server.grpcserver.MatrixResponse;
+import com.example.grpc.server.grpcserver.Row;
+import com.example.matrix.helpers.MatrixHelpers;
 
 import java.util.Arrays;
 import java.util.List;

@@ -2,7 +2,7 @@ package com.example.matrix;
 
 public class MatrixMultiplier {
 
-    public static Double dotProduct(Double[][] A, Double[][] B, int ai, int bi) {
+    private static Double dotProduct(Double[][] A, Double[][] B, int ai, int bi) {
         assert A.length == B.length;
         double c = 0;
         for(int i = 0; i < A.length; i++){

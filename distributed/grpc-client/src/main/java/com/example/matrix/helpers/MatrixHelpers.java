@@ -1,4 +1,4 @@
-package com.example.matrix;
+package com.example.matrix.helpers;
 
 import com.example.grpc.client.grpcclient.exceptions.BadMatrixException;
 import com.example.grpc.client.grpcclient.exceptions.IncompatibleMatrixException;
@@ -20,6 +20,7 @@ public class MatrixHelpers {
         return out;
     }
 
+    // string in the format of item separated by space and row separated by new line
     public static Double[][] parseMatrixFromString(String matrix) throws MatrixTooSmallException, IncompatibleMatrixException, BadMatrixException {
         if(matrix.length() == 0){
             throw new MatrixTooSmallException("Matrix size must be at least 2");
@@ -65,6 +66,14 @@ public class MatrixHelpers {
         return count;
     }
 
+    /**
+     * Get a block from the matrix of size "size"
+     * @param matrix the matrix
+     * @param start_row index of the row to start from
+     * @param start_column index of the column to start from
+     * @param size size of the block
+     * @return block from matrix "matrix"
+     */
     public static Double[][] divideMatrix(Double[][] matrix, int start_row, int start_column, int size){
         Double[][] out = new Double[size][size];
         for(int i = 0; i < out.length; i++){
@@ -86,24 +95,12 @@ public class MatrixHelpers {
         return buffer.substring(0, buffer.length()-2);
     }
 
-    public static Double[][] convertToMatrix(List<List<Double>> list){
-        //assumes square matrix
-        if(list.size() == 0){
-            return new Double[0][0];
-        }
-        Double[][] temp = new Double[list.size()][list.get(0).size()];
-        int i = 0;
-        for(List<Double> ls: list){
-            temp[i++] = ls.toArray(Double[]::new);
-        }
-        return temp;
-    }
-
     public MatrixHelpers(int size){
         this.matrix = new Double[size][size];
         this.currRow = 0;
     }
 
+    // requires java 11
     public void parseRow(List<Double> row){
         this.matrix[currRow++] = row.toArray(Double[]::new);
     }
@@ -112,6 +109,13 @@ public class MatrixHelpers {
         return this.matrix;
     }
 
+    /**
+     * Assign a block to a target matrix
+     * @param target target matrix
+     * @param from block
+     * @param start_row index of the row to start from
+     * @param start_column index of the column to start from
+     */
     public static void mapToLargerMatrix(Object[][] target, Object[][] from, int start_row, int start_column){
         assert target.length >= from.length;
         for(int i = 0; i<from.length; i++){

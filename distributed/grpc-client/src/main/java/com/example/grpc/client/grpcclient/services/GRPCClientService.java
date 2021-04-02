@@ -1,9 +1,10 @@
-package com.example.grpc.client.grpcclient;
+package com.example.grpc.client.grpcclient.services;
 
+import com.example.grpc.client.grpcclient.services.helpers.StubHelpers;
 import com.example.grpc.client.grpcclient.exceptions.IncompatibleMatrixException;
 import com.example.grpc.server.grpcserver.*;
 import com.example.matrix.BlockMatrix;
-import com.example.matrix.MatrixHelpers;
+import com.example.matrix.helpers.MatrixHelpers;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,20 @@ public class GRPCClientService {
     );
 
 
-    private final static String[] addressList = {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
-    private final static int[] portList = {9090, 50051, 50052, 50053, 50054, 50055, 50057, 50056};
-    Double A[][] = MatrixHelpers.zeroMatrix(4);
-    Double B[][] = MatrixHelpers.zeroMatrix(4);
+    private final static String[] ADDRESS_LIST = {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
+    private final static int[] PORT_LIST = {9090, 50051, 50052, 50053, 50054, 50055, 50057, 50056};
+
+    // we only use put request so the matrices are always initialized to something
+    private Double[][] A = MatrixHelpers.zeroMatrix(4);
+    private Double[][] B = MatrixHelpers.zeroMatrix(4);
+
+    private final StubHandler handler;
+
+    @Autowired
+    public GRPCClientService(StubHandler handler) {
+        this.handler = handler;
+    }
+
     public void setA(Double[][] a) {
         A = a;
     }
@@ -46,7 +57,16 @@ public class GRPCClientService {
         B = b;
     }
 
-    public Double[][] multiplyMatrix(double deadline, long startTime) throws InterruptedException, ExecutionException, IncompatibleMatrixException{
+    /**
+     * Main method for the service
+     * @param deadline in how many milliseconds the user wants to complete the multiplication
+     * @param startTime system time in milliseconds for when the request was received
+     * @return resulting matrix
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws IncompatibleMatrixException
+     */
+    public Double[][] multiplyMatrix(long deadline, long startTime) throws InterruptedException, ExecutionException, IncompatibleMatrixException{
 
         if(A.length != B.length){
             throw new IncompatibleMatrixException("A and B must be the same size");
@@ -55,7 +75,7 @@ public class GRPCClientService {
             // for a tiny matrix just return the result
             return StubHelpers.multiplyBlock(A, B, getStub(0));
         }
-        int blocks = getNumberOfBlocks(A.length);
+        int blocks = calculateNumber(A.length);
         BlockMatrix Ab = new BlockMatrix(A, blocks);
         BlockMatrix Bb = new BlockMatrix(B, blocks);
         Double[][] C = new Double[A.length][A.length];
@@ -63,16 +83,16 @@ public class GRPCClientService {
         int rows = (int) Math.sqrt(blocks);
         int multiplyCalls = rows * rows * rows;
 
-        // some extra time needs to be given to account for sequential elements and network latency change
-        int offset = 11;
-
-
         /*
         Footprinting:
         AddBlock calls are faster than multiplyBlock calls, but since this is en estimation, and
         since we have to leave some extra time for network delays etc. they will be treated to take
         equal amount of time.
          */
+
+        // some extra time needs to be given to account for sequential elements and network latency change
+        // would need to be calculated dynamically normally, but this should be good enough for the coursework
+        int offset = 11;
 
         long t1 = System.currentTimeMillis();
         StubHelpers.multiplyBlock(Ab.getBlock(0,0), Bb.getBlock(0,0), getStub(0));
@@ -86,49 +106,68 @@ public class GRPCClientService {
         return C;
     }
 
-
-    @Autowired
-    private StubHandler handler;
-
+    /**
+     * This methods implements the distributed matrix multiplication
+     * @param nServers number of servers
+     * @param blocks number of blocks
+     * @param rows number of rows in the matrix
+     * @param Ab Block matrix A
+     * @param Bb Block matrix B
+     * @param C Result matrix C
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     private void multiplyMatrix(int nServers, int blocks, int rows, BlockMatrix Ab, BlockMatrix Bb, Double[][] C) throws InterruptedException, ExecutionException{
         List<CompletableFuture<Object>> futures;
+
+        /* Option for 4 blocks is partially hard-coded, unlike for 16+ blocks, because the splitting method is on individual multiplication level.
+        This partial hard coding allows for micro-management of distributing the multiplication for more efficient results.
+        */
         if(blocks == MIN_BLOCKS){
             switch (nServers){
                 case 1:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs1 = {getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs1 =
+                            {getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0), getStub(0)}; // distribution of multiplication across stubs
                     multiplyWithStubSequence(stubs1, C, Ab, Bb);
                     break;
                 case 2:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs2 = {getStub(0), getStub(0), getStub(0), getStub(0), getStub(1), getStub(1), getStub(1), getStub(1)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs2 =
+                            {getStub(0), getStub(0), getStub(0), getStub(0), getStub(1), getStub(1), getStub(1), getStub(1)};
                     multiplyWithStubSequence(stubs2, C, Ab, Bb);
                     break;
                 case 3:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs3 = {getStub(0), getStub(0), getStub(0), getStub(1), getStub(1), getStub(1), getStub(2), getStub(2)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs3 =
+                            {getStub(0), getStub(0), getStub(0), getStub(1), getStub(1), getStub(1), getStub(2), getStub(2)};
                     multiplyWithStubSequence(stubs3, C, Ab, Bb);
                     break;
                 case 4:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs4 = {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(2), getStub(3), getStub(3)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs4 =
+                            {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(2), getStub(3), getStub(3)};
                     multiplyWithStubSequence(stubs4, C, Ab, Bb);
                     break;
                 case 5:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs5 = {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(2), getStub(3), getStub(4)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs5 =
+                            {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(2), getStub(3), getStub(4)};
                     multiplyWithStubSequence(stubs5, C, Ab, Bb);
                     break;
                 case 6:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs6 = {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs6 =
+                            {getStub(0), getStub(0), getStub(1), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5)};
                     multiplyWithStubSequence(stubs6, C, Ab, Bb);
                     break;
                 case 7:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs7 = {getStub(0), getStub(0), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5), getStub(6)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs7 =
+                            {getStub(0), getStub(0), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5), getStub(6)};
                     multiplyWithStubSequence(stubs7, C, Ab, Bb);
                     break;
                 case 8:
-                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs8 = {getStub(0), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5), getStub(6), getStub(7)};
+                    MatrixServiceGrpc.MatrixServiceBlockingStub[] stubs8 =
+                            {getStub(0), getStub(1), getStub(2), getStub(3), getStub(4), getStub(5), getStub(6), getStub(7)};
                     multiplyWithStubSequence(stubs8, C, Ab, Bb);
             }
-        }else{
+        }
 
-            System.out.println("Larger Matrix");
+        else{
             futures = new ArrayList<>();
             int perServer = rows * rows / nServers;
             int c = 0;
@@ -156,6 +195,17 @@ public class GRPCClientService {
         }
     }
 
+    /**
+     * the helper method that performs the block multiplication according to the split given by stubList.
+     * This method always "thinks" that there are servers.
+     * To spread the load across less servers simply repeat the reference to a stub in the array.
+     * @param stubList the sequence describing which server does which multiplication
+     * @param C result matrix to map to
+     * @param Ab Block matrix A
+     * @param Bb Block matrix B
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     private void multiplyWithStubSequence(MatrixServiceGrpc.MatrixServiceBlockingStub[] stubList, Double[][] C, BlockMatrix Ab, BlockMatrix Bb) throws InterruptedException, ExecutionException{
         ArrayList<CompletableFuture<Double[][]>> multResults = new ArrayList<>();
         // 0,0
@@ -188,7 +238,8 @@ public class GRPCClientService {
             future.get();
         }
     }
-    private int getNumberOfBlocks(int size){
+
+    private int calculateNumber(int size){
         return (size < SMALLEST_N_BLOCKS_THRESHOLD) ? MIN_BLOCKS : MAX_BLOCKS;
     }
 
@@ -198,13 +249,14 @@ public class GRPCClientService {
         }
     }
 
+    // get stub will only instantiate a channel if it's needed to save resources
     private MatrixServiceGrpc.MatrixServiceBlockingStub getStub(int index){
         if(index >= MAX_SERVERS){
             throw new IllegalArgumentException();
         }
         if(index >= stubs.size()-1){
             for(int i = stubs.size(); i <= index; i++){
-                channels.add(ManagedChannelBuilder.forAddress(addressList[channels.size()-1], portList[channels.size()-1]).usePlaintext().build());
+                channels.add(ManagedChannelBuilder.forAddress(ADDRESS_LIST[channels.size()-1], PORT_LIST[channels.size()-1]).usePlaintext().build());
                 stubs.add(MatrixServiceGrpc.newBlockingStub(channels.get(channels.size()-1)));
             }
         }

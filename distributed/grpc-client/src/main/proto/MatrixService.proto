@@ -15,13 +15,7 @@ message MatrixResponse {
   repeated Row i = 1;
 }
 
-message Success {}
-
-message getAccRequest{}
-
 service MatrixService {
   rpc multiplyBlock(MatrixRequest) returns (MatrixResponse);
   rpc addBlock(MatrixRequest) returns (MatrixResponse);
-  rpc multiplyAndAdd(MatrixRequest) returns (Success);
-  rpc getAccumulated(getAccRequest) returns (MatrixResponse);
 }

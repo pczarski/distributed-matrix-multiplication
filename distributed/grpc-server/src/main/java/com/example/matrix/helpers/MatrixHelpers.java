@@ -1,21 +1,11 @@
-package com.example.matrix;
+package com.example.matrix.helpers;
 
 import java.util.List;
 
 public class MatrixHelpers {
 
-    private Double[][] matrix;
+    private final Double[][] matrix;
     private int currRow;
-
-    public static Double[][] ZeroMatrix(int size){
-        Double[][] out = new Double[size][size];
-        for(int i = 0; i < size; i++){
-            for(int j = 0; j < size; j++){
-                out[i][j] = 0.;
-            }
-        }
-        return out;
-    }
 
     public MatrixHelpers(int size){
         this.matrix = new Double[size][size];
