@@ -1,6 +1,7 @@
 package com.example.grpc.client.grpcclient;
 
 import com.example.grpc.server.grpcserver.MatrixRequest;
+import com.example.grpc.server.grpcserver.getAccRequest;
 import com.example.grpc.server.grpcserver.Row;
 import com.example.matrix.MatrixHelpers;
 
@@ -28,5 +29,8 @@ public class BufferHelpers {
             ));
         }
         return builder.build();
+    }
+    public static getAccRequest buildGetAccRequest(){
+        return getAccRequest.newBuilder().build();
     }
 }

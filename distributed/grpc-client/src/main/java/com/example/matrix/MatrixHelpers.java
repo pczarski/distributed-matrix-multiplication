@@ -3,8 +3,6 @@ package com.example.matrix;
 import com.example.grpc.client.grpcclient.exceptions.BadMatrixException;
 import com.example.grpc.client.grpcclient.exceptions.IncompatibleMatrixException;
 import com.example.grpc.client.grpcclient.exceptions.MatrixTooSmallException;
-
-import java.util.Arrays;
 import java.util.List;
 
 public class MatrixHelpers {
@@ -66,15 +64,6 @@ public class MatrixHelpers {
         }
         return count;
     }
-
-//    private static Double[] strToDoubleArr(String row){
-//        int rowLength = (row.length()+1)/2;
-//        Double[] out = new Double[rowLength];
-//        for(int i = 0; i< rowLength; i++){
-//            out[i] = Double.parseDouble(String.valueOf(row.charAt(i*2)));
-//        }
-//        return out;
-//    }
 
     public static Double[][] divideMatrix(Double[][] matrix, int start_row, int start_column, int size){
         Double[][] out = new Double[size][size];

@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 public class GRPCClientService {
 
     private static final int MAX_SERVERS = 8;
-    private static final int SMALLEST_N_BLOCKS_THRESHOLD = 1024;
+    private static final int SMALLEST_N_BLOCKS_THRESHOLD = 256;
     private static final int MIN_BLOCKS = 4;
     private static final int MAX_BLOCKS = 16;
 
@@ -32,7 +32,7 @@ public class GRPCClientService {
 
 
     private final static String[] addressList = {"localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
-    private final static int[] portList = {9090, 50051, 50052, 50053, 50054, 50055, 50056, 50057};
+    private final static int[] portList = {9090, 50051, 50052, 50053, 50054, 50055, 50057, 50056};
     Double A[][] = MatrixHelpers.zeroMatrix(4);
     Double B[][] = MatrixHelpers.zeroMatrix(4);
     public void setA(Double[][] a) {
@@ -87,12 +87,6 @@ public class GRPCClientService {
 
     private void multiplyMatrix(int nServers, int blocks, int rows, BlockMatrix Ab, BlockMatrix Bb, Double[][] C) throws InterruptedException, ExecutionException{
         List<CompletableFuture<Object>> futures;
-        List<CompletableFuture<Double[][]>> multResults;
-        CompletableFuture<Double[][]> res00;
-        CompletableFuture<Double[][]> res01;
-        CompletableFuture<Double[][]> res10;
-        CompletableFuture<Double[][]> res11;
-        MatrixServiceGrpc.MatrixServiceBlockingStub[] stubList;
         if(blocks == MIN_BLOCKS){
             switch (nServers){
                 case 1:
@@ -128,7 +122,32 @@ public class GRPCClientService {
                     multiplyWithStubSequence(stubs8, C, Ab, Bb);
             }
         }else{
-            
+
+            System.out.println("Larger Matrix");
+            futures = new ArrayList<>();
+            int perServer = rows * rows / nServers;
+            int c = 0;
+            int currentStub = 0;
+            int evenOutStub = 0;
+            boolean evenOut = false;
+            for(int i = 0; i < rows; i++){
+                for(int j = 0; j < rows; j++){
+                    if(evenOut){
+                        if(++evenOutStub == nServers){
+                            evenOutStub = 0;
+                        }
+                    }
+                    if(++c % perServer == 0){
+                        currentStub++;
+                    }
+                    if(currentStub >= nServers){
+                        evenOut = true;
+                    }
+                    int stubNumber = evenOut? evenOutStub : currentStub;
+                    futures.add(handler.blockDotProduct(rows, i, j, Ab, Bb, C, getStub(stubNumber)));
+                }
+            }
+            waitForStubs(futures);
         }
     }
 
@@ -159,29 +178,13 @@ public class GRPCClientService {
         MatrixHelpers.mapToLargerMatrix(C, res11.get(), Ab.getBlockSize(), Ab.getBlockSize());
     }
 
-    // Always uses the second stub to perform the addition
-//    private void addAndMultiplyTwoStubs(MatrixServiceGrpc.MatrixServiceBlockingStub stub, Double[][] C, BlockMatrix Ab, BlockMatrix Bb,
-//    int a1i, int a1j, int b1i, int b1j, int a2i, int a2j, int b2i, int b2j, int row, int col
-//    ) throws InterruptedException
-//
-//    {
-//        CompletableFuture<Double[][]> resA = handler.multiplyBlock(Ab.getBlock(a1i, a1j), Bb.getBlock(b1i, b1j), stub);
-//        CompletableFuture<Double[][]> resB = handler.multiplyBlock(Ab.getBlock(a2i, a2j), Bb.getBlock(b2i, b2j), stub);
-//        MatrixHelpers.mapToLargerMatrix(C,
-//                addBlock(
-//                        multiplyBlock(Ab.getBlock(a1i, a1j), Bb.getBlock(b1i, b1j), stub),
-//                        multiplyBlock(Ab.getBlock(a2i, a2j), Bb.getBlock(b2i, b2j), stub), stub),
-//                row * Ab.getBlockSize(), col * Ab.getBlockSize()
-//        );
-//    }
-
     private static void waitForStubs(List<CompletableFuture<Object>> futures) throws InterruptedException, ExecutionException {
         for(CompletableFuture<Object> future: futures){
             future.get();
         }
     }
     private int getNumberOfBlocks(int size){
-        return (size <= SMALLEST_N_BLOCKS_THRESHOLD) ? MIN_BLOCKS : MAX_BLOCKS;
+        return (size < SMALLEST_N_BLOCKS_THRESHOLD) ? MIN_BLOCKS : MAX_BLOCKS;
     }
 
     public void shutDownChannels(){
@@ -191,10 +194,10 @@ public class GRPCClientService {
     }
 
     private MatrixServiceGrpc.MatrixServiceBlockingStub getStub(int index){
-        if(index > MAX_SERVERS){
+        if(index >= MAX_SERVERS){
             throw new IllegalArgumentException();
         }
-        if(index >= stubs.size()){
+        if(index >= stubs.size()-1){
             for(int i = stubs.size(); i <= index; i++){
                 channels.add(ManagedChannelBuilder.forAddress(addressList[channels.size()-1], portList[channels.size()-1]).usePlaintext().build());
                 stubs.add(MatrixServiceGrpc.newBlockingStub(channels.get(channels.size()-1)));
@@ -202,7 +205,4 @@ public class GRPCClientService {
         }
         return stubs.get(index);
     }
-
-
-
 }
