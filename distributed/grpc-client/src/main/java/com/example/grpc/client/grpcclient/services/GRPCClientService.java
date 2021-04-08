@@ -27,7 +27,7 @@ public class GRPCClientService {
 
     // we will always need at least one stub
     private ArrayList<ManagedChannel> channels = new ArrayList(
-            Arrays.asList(ManagedChannelBuilder.forAddress("3.87.212.33", 9090).usePlaintext().build())
+            Arrays.asList(ManagedChannelBuilder.forAddress("3.89.140.116", 9090).usePlaintext().build())
     );
 
     private ArrayList<MatrixServiceGrpc.MatrixServiceBlockingStub> stubs = new ArrayList<>(
