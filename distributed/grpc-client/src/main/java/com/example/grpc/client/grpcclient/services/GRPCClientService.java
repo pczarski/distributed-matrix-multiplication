@@ -271,6 +271,7 @@ public class GRPCClientService {
                 stubs.add(MatrixServiceGrpc.newBlockingStub(channels.get(channels.size()-1)));
             }
         }
+        System.out.println(index);
         return stubs.get(index);
     }
 }
