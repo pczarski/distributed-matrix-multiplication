@@ -265,7 +265,7 @@ public class GRPCClientService {
         if(index >= MAX_SERVERS){
             throw new IllegalArgumentException();
         }
-        if(index >= stubs.size()-1){
+        if(index > stubs.size()-1){
             for(int i = stubs.size(); i <= index; i++){
                 channels.add(ManagedChannelBuilder.forAddress(ADDRESS_LIST[channels.size()-1], PORT_LIST[channels.size()-1]).usePlaintext().build());
                 stubs.add(MatrixServiceGrpc.newBlockingStub(channels.get(channels.size()-1)));
