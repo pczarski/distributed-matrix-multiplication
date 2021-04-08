@@ -45,7 +45,7 @@ public class GRPCClientService {
     {"18.208.177.81", "54.174.112.40", "3.82.104.179", "34.201.60.223", "34.201.54.107", "54.152.37.176", "35.170.245.15", "54.242.181.182"}
     {9090, 9090, 9090, 9090, 9090, 9090, 9090, 9090}
      */
-    private final static String[] ADDRESS_LIST = {"3.89.140.116", "18.234.166.111", "54.161.195.170", "3.86.224.86", "52.87.32.107", "3.87.215.200", "3.87.224.101", "3.88.170.238"};
+    private final static String[] ADDRESS_LIST = {"3.89.140.116", "18.234.166.111", "54.161.195.170", "3.86.224.86", "52.87.32.107", "3.87.215.200", "3.88.170.238", "3.87.224.101"};
     private final static int[] PORT_LIST = {9090, 9090, 9090, 9090, 9090, 9090, 9090, 9090};
 
     // we only use put request so the matrices are always initialized to something
@@ -272,6 +272,7 @@ public class GRPCClientService {
             }
         }
         System.out.println(index);
+        System.out.println(Arrays.toString(stubs.toArray()));
         return stubs.get(index);
     }
 }
