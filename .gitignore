@@ -16,3 +16,5 @@ buildNumber.properties
 temp/
 servers/
 distributed/CW2.zip
+distributed/cmds.txt
+
